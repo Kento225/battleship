@@ -1,0 +1,11 @@
+.div-container{
+    display: grid;
+    grid-template-columns: repeat(10, auto);
+    grid-template-rows: repeat(10, auto);
+    border: solid 2px black;
+    height: 500px;
+    width: 500px;
+}
+.square{
+    border: solid 1px black;
+}
