@@ -1,16 +1,6 @@
-const newShip = (x, y, length, rotation) => {
-  length;
-  x = [x];
-  y = [y];
+const newShip = (coords, x, y) => {
+  this.length = coords.length;
   const hits = 0;
-
-  for (i = 0; i < length - 1; i++) {
-    if (rotation === "y") {
-      y.push(y[i] + 1);
-    } else if (rotation === "x") {
-      x.push(x[i] + 1);
-    }
-  }
 
   const isSunk = function () {
     if (this.hits >= this.length) {

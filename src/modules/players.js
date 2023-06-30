@@ -15,7 +15,5 @@ const player = (type) => {
         enemy.board.placeShip(randomX, randomY, length[i], rotation);
       }
     }
-    if (type === "human") {
-    }
   };
 };

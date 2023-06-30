@@ -1,10 +1,15 @@
 const newShip = require("./newShip-factory");
+const grid = require("./render");
 
 const gameBoard = () => {
   const shipArray = [];
   const missedArray = [];
+  const rotation = "x";
+  const length = 4;
 
-  const placeShip = function (x, y, length, rotation) {
+  const boardGrid = grid(length, rotation);
+
+  const placeShip = function () {
     shipArray.push(newShip(x, y, length, rotation));
   };
   const receiveAttack = function (x, y) {
@@ -27,7 +32,15 @@ const gameBoard = () => {
       }
     }
   };
-  return { placeShip, receiveAttack, allSunk, shipArray, missedArray };
+  return {
+    placeShip,
+    receiveAttack,
+    allSunk,
+    shipArray,
+    missedArray,
+    boardGrid,
+  };
 };
 
-module.exports = gameBoard;
+const board = gameBoard();
+board.boardGrid.createGrid("place");
