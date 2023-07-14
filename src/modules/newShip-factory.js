@@ -1,5 +1,6 @@
-const newShip = (coords, x, y) => {
-  this.length = coords.length;
+export function newShip(coords) {
+  coords: coords;
+  length: coords.length;
   const hits = 0;
 
   const isSunk = function () {
@@ -9,13 +10,11 @@ const newShip = (coords, x, y) => {
       return false;
     }
   };
-  const hit = function (amount) {
-    this.hits += amount;
+  const hit = function () {
+    this.hits++;
   };
   const console = function () {
     return this.hits;
   };
-  return { x, y, length, hits, isSunk, hit, console };
-};
-
-module.exports = newShip;
+  return { coords, isSunk, hit, console };
+}

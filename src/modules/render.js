@@ -1,10 +1,53 @@
-const grid = function (length, rotation) {
-  const squareArr = [];
+import { flow } from "../index";
+export function controls(rotationCallback) {
+  const rotationButtonArr = [];
+  function changeRotation(rot) {
+    rotationCallback(rot);
+  }
+  //adds rotation buttons to the DOM
+  function addRotationButtons() {
+    const rotationBtnX = createRotationButton("X", "x");
+    const rotationBtnY = createRotationButton("Y", "y");
+    document
+      .querySelector(".place-button-container")
+      .append(rotationBtnX, rotationBtnY);
+    rotationButtonArr.push(rotationBtnX, rotationBtnY);
+  }
+  //function for creating rotation button elements
+  function createRotationButton(label, rot) {
+    const button = document.createElement("button");
+    button.textContent = label;
+    button.addEventListener("click", () => changeRotation(rot));
+    return button;
+  }
 
-  const createGrid = function (type) {
-    const gridContainer = document.createElement("div");
+  return {
+    addRotationButtons,
+  };
+}
+
+export function grid(placeFunc) {
+  const squareArr = [];
+  let highlightArr = [];
+  let rotation = "x";
+  let length = 5;
+  let availableLengths = [4, 3, 3, 2];
+  let currentLengthIndex = 0;
+  let gridContainer = "";
+
+  function setRotation(rot) {
+    rotation = rot;
+  }
+
+  function createGrid(type, arr) {
+    gridContainer = document.createElement("div");
     gridContainer.classList.add("div-container");
-    document.querySelector("body").appendChild(gridContainer);
+    if (type === "place") {
+      document.querySelector(".place-ui").appendChild(gridContainer);
+    }
+    if (type === "display") {
+      document.querySelector(".ai-side").appendChild(gridContainer);
+    }
     let y = 10;
     let x = 1;
     for (let i = 0; i < 100; i++) {
@@ -19,82 +62,130 @@ const grid = function (length, rotation) {
       if (square.dataset.x >= 10) {
         x = 1;
       }
-
+      if (type === "display") {
+        console.log(arr);
+        arr.forEach((element) => {
+          console.log(element.x);
+          if (
+            element.x === +square.dataset.x &&
+            element.y === +square.dataset.y
+          ) {
+            square.style.backgroundColor = "black";
+          }
+        });
+      }
       if (type === "place") {
         square.addEventListener("mouseout", removeHighlight);
         square.addEventListener("mouseover", (e) => {
           highlightPlacement(e);
-          square.addEventListener("click", gridPlace);
         });
+        square.addEventListener("click", gridPlace);
       }
 
       gridContainer.appendChild(square);
 
       squareArr.push(square);
     }
-  };
+    if (type === "place") {
+      controls(setRotation).addRotationButtons();
+    }
+  }
 
-  const highlightPlacement = function (e) {
-    const highlightArr = [];
-    console.log(e.target.dataset);
+  function highlightPlacement(e) {
+    highlightArr = [];
     let opRotation = rotation === "y" ? "x" : "y";
     squareArr.forEach((element) => {
       if (
         +element.dataset[opRotation] === +e.target.dataset[opRotation] &&
         +element.dataset[rotation] >= +e.target.dataset[rotation] &&
         +element.dataset[rotation] < +e.target.dataset[rotation] + length &&
-        element.dataset.isHighlighted !== "placed"
+        element.dataset.status !== "placed" &&
+        element.dataset.status !== "blocked"
       ) {
         highlightArr.push(element);
       }
     });
-    if (e.target.dataset.isHighlighted === "placed") {
+    if (e.target.dataset.status === "placed") {
       return;
     }
+    //shows illegal placement
     if (
       highlightArr.length < length ||
-      e.target.dataset.isHighlighted === "placed" ||
+      e.target.dataset.status === "placed" ||
       highlightArr.some((element) => {
-        element.dataset.isHighlighted === "placed";
+        return (
+          element.dataset.status === "placed" ||
+          element.dataset.status === "blocked"
+        );
       })
     ) {
+      highlightArr = [];
       e.target.style.backgroundColor = "red";
       return;
     }
+    //if mouse on legal placement squares, makes them grey
     highlightArr.forEach((element) => {
       element.style.backgroundColor = "grey";
-      element.dataset.isHighlighted = true;
+      element.dataset.status = true;
     });
-    console.log(checkHighlighted(highlightArr));
-  };
-  const removeHighlight = function () {
+  }
+  function removeHighlight() {
     squareArr.forEach((element) => {
-      if (element.dataset.isHighlighted === "placed") {
+      if (element.dataset.status === "placed") {
+        return;
+      }
+      if (element.dataset.status === "blocked") {
+        element.style.backgroundColor = "yellow";
         return;
       }
       element.style.backgroundColor = "yellow";
-      element.dataset.isHighlighted = false;
+      element.dataset.status = "false";
     });
-  };
-  const gridPlace = function () {
-    squareArr.forEach((element) => {
-      if (element.dataset.isHighlighted === "true") {
-        element.style.backgroundColor = "black";
-        element.dataset.isHighlighted = "placed";
-      }
-    });
-  };
-
-  const checkHighlighted = function (highlightArr) {
-    for (let i = 0; i < highlightArr.length; i++) {
-      console.log(highlightArr[i]);
-      if (highlightArr[i].dataset.isHighlighted === "placed") {
-        return true;
-      } else {
-      }
+  }
+  function gridPlace() {
+    if (highlightArr.length === 0) {
+      return;
     }
-  };
+    const coords = [];
 
-  return { createGrid };
-};
-module.exports = grid;
+    highlightArr.forEach((element) => {
+      element.style.backgroundColor = "black";
+      element.dataset.status = "placed";
+      coords.push({ x: element.dataset.x, y: element.dataset.y });
+    });
+
+    blockSquares();
+    placeFunc(coords);
+    changeLength();
+    flow.placePhaseProgress();
+  }
+  //makes squares around placed ships blocked to placement
+  function blockSquares() {
+    squareArr.forEach((element) => {
+      if (element.dataset.status === "placed") {
+        squareArr.forEach((square) => {
+          if (square.dataset.status !== "placed") {
+            if (
+              (+square.dataset.y === +element.dataset.y + 1 &&
+                +square.dataset.x === +element.dataset.x) ||
+              (+square.dataset.y === +element.dataset.y - 1 &&
+                +square.dataset.x === +element.dataset.x) ||
+              (+square.dataset.y === +element.dataset.y &&
+                +square.dataset.x === +element.dataset.x + 1) ||
+              (+square.dataset.y === +element.dataset.y &&
+                +square.dataset.x === +element.dataset.x - 1)
+            ) {
+              square.dataset.status = "blocked";
+            }
+          }
+        });
+      }
+    });
+  }
+
+  function changeLength() {
+    length = availableLengths[currentLengthIndex];
+    currentLengthIndex++;
+  }
+  return { createGrid, gridContainer };
+}

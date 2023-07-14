@@ -1,28 +1,14 @@
-const newShip = require("./newShip-factory");
-const grid = require("./render");
+import { newShip } from "./newShip-factory";
+import { grid } from "./render";
 
-const gameBoard = () => {
+export function gameBoard() {
   const shipArray = [];
   const missedArray = [];
-  const rotation = "x";
-  const length = 4;
 
-  const boardGrid = grid(length, rotation);
-
-  const placeShip = function () {
-    shipArray.push(newShip(x, y, length, rotation));
+  const placeShip = function (coords) {
+    shipArray.push(newShip(coords));
   };
-  const receiveAttack = function (x, y) {
-    for (i = 0; i < shipArray.length; i++) {
-      if (shipArray[i].y.includes(y) && shipArray[i].x.includes(x)) {
-        shipArray[i].hits += 1;
-      } else
-        missedArray.push({
-          x: x,
-          y: y,
-        });
-    }
-  };
+  const receiveAttack = function (x, y) {};
   const allSunk = function () {
     for (i = 0; i < shipArray.length; i++) {
       if (!shipArray.isSunk) {
@@ -32,15 +18,24 @@ const gameBoard = () => {
       }
     }
   };
+
+  const domGrid = grid(placeShip);
+
+  function addDomPlaceGrid() {
+    domGrid.createGrid("place");
+  }
+  function addDomDisplayGrid() {
+    domGrid.createGrid("display", shipArray);
+  }
+
   return {
     placeShip,
     receiveAttack,
     allSunk,
     shipArray,
     missedArray,
-    boardGrid,
+    addDomPlaceGrid,
+    addDomDisplayGrid,
+    domGrid,
   };
-};
-
-const board = gameBoard();
-board.boardGrid.createGrid("place");
+}
