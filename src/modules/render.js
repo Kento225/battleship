@@ -1,4 +1,7 @@
 import { flow } from "../index";
+import { humanPlayer } from "./players";
+import { AIPlayer } from "./players";
+
 export function controls(rotationCallback) {
   const rotationButtonArr = [];
   function changeRotation(rot) {
@@ -26,7 +29,7 @@ export function controls(rotationCallback) {
   };
 }
 
-export function grid(placeFunc) {
+export function grid() {
   const squareArr = [];
   let highlightArr = [];
   let rotation = "x";
@@ -39,15 +42,22 @@ export function grid(placeFunc) {
     rotation = rot;
   }
 
-  function createGrid(type, arr) {
+  function createGrid(type) {
     gridContainer = document.createElement("div");
     gridContainer.classList.add("div-container");
     if (type === "place") {
+      gridContainer.setAttribute("id", "place-grid");
       document.querySelector(".place-ui").appendChild(gridContainer);
     }
     if (type === "display") {
+      gridContainer.setAttribute("id", "display-grid");
       document.querySelector(".ai-side").appendChild(gridContainer);
     }
+    if (type === "attack") {
+      gridContainer.setAttribute("id", "attack-grid");
+      document.querySelector(".player-side").appendChild(gridContainer);
+    }
+
     let y = 10;
     let x = 1;
     for (let i = 0; i < 100; i++) {
@@ -63,15 +73,11 @@ export function grid(placeFunc) {
         x = 1;
       }
       if (type === "display") {
-        console.log(arr);
-        arr.forEach((element) => {
-          console.log(element.x);
-          if (
-            element.x === +square.dataset.x &&
-            element.y === +square.dataset.y
-          ) {
-            square.style.backgroundColor = "black";
-          }
+        displayShips();
+      }
+      if (type === "attack") {
+        square.addEventListener("click", (e) => {
+          humanPlayer.playerAttack(e, gridAttackRender, renderSunken);
         });
       }
       if (type === "place") {
@@ -100,7 +106,8 @@ export function grid(placeFunc) {
         +element.dataset[rotation] >= +e.target.dataset[rotation] &&
         +element.dataset[rotation] < +e.target.dataset[rotation] + length &&
         element.dataset.status !== "placed" &&
-        element.dataset.status !== "blocked"
+        element.dataset.status !== "blocked" &&
+        e.target.dataset.status !== "placed"
       ) {
         highlightArr.push(element);
       }
@@ -147,18 +154,43 @@ export function grid(placeFunc) {
       return;
     }
     const coords = [];
-
     highlightArr.forEach((element) => {
       element.style.backgroundColor = "black";
       element.dataset.status = "placed";
-      coords.push({ x: element.dataset.x, y: element.dataset.y });
+      coords.push({
+        x: element.dataset.x,
+        y: element.dataset.y,
+      });
     });
+    humanPlayer.placeShip = coords;
 
+    console.log(humanPlayer.board.shipArray);
     blockSquares();
-    placeFunc(coords);
     changeLength();
     flow.placePhaseProgress();
   }
+
+  function gridAttackRender(hit, e) {
+    if (hit === true) {
+      e.target.textContent = "🔴";
+      e.target.dataset.status = "hit";
+    }
+    if (hit === false) {
+      e.target.textContent = "⚫️";
+      e.target.dataset.status = "blocked";
+    }
+  }
+
+  function renderSunken(ship) {
+    ship.coords.forEach((coord) => {
+      document.querySelector("#attack-grid").childNodes.forEach((square) => {
+        if (+square.dataset.x === +coord.x && +square.dataset.y === +coord.y) {
+          square.style.backgroundColor = "#df6c6c";
+        }
+      });
+    });
+  }
+
   //makes squares around placed ships blocked to placement
   function blockSquares() {
     squareArr.forEach((element) => {
@@ -180,6 +212,21 @@ export function grid(placeFunc) {
           }
         });
       }
+    });
+  }
+
+  function displayShips() {
+    humanPlayer.board.shipArray.forEach((ship) => {
+      ship.coords.forEach((coord) => {
+        document.querySelector("#display-grid").childNodes.forEach((square) => {
+          if (
+            +square.dataset.x === +coord.x &&
+            +square.dataset.y === +coord.y
+          ) {
+            square.style.backgroundColor = "#333333";
+          }
+        });
+      });
     });
   }
 

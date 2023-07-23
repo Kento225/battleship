@@ -14,6 +14,11 @@ body{
 }
 .square{
     border: solid 1px black;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    width: 48px;
+    height: 48px;
 }
 .length-square{
     width: 50px;
@@ -51,10 +56,16 @@ body{
     height: 100%;
 }
 .ai-side{
+    display:flex;
     height: 100%;
     width: 50%;
+    justify-content: center;
+    align-items: center;
 }
 .player-side {
+    display:flex;
     height: 100%;
     width: 50%;
+    justify-content: center;
+    align-items: center;
 }

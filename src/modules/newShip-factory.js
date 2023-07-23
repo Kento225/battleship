@@ -1,20 +1,18 @@
-export function newShip(coords) {
-  coords: coords;
-  length: coords.length;
-  const hits = 0;
+export class Ship {
+  constructor(coords) {
+    this.coords = coords;
+    this.hits = 0;
+    this.length = coords.length;
+  }
 
-  const isSunk = function () {
+  get isSunk() {
     if (this.hits >= this.length) {
       return true;
     } else {
       return false;
     }
-  };
-  const hit = function () {
+  }
+  hit() {
     this.hits++;
-  };
-  const console = function () {
-    return this.hits;
-  };
-  return { coords, isSunk, hit, console };
+  }
 }

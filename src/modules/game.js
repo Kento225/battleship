@@ -1,30 +1,29 @@
 import * as placeUI from "../UI/place-ui";
 import { addAttackUI } from "../UI/attack-ui";
-import { player } from "./players";
-
+import { grid } from "./render";
+import { humanPlayer } from "./players";
+import { AIPlayer } from "./players";
 export function gameFlow() {
   let timesPlaced = 0;
 
-  const HumanPlayer = player();
-  const AIPlayer = player();
-
-  AIPlayer.AIPlace();
-
   const placePhase = function () {
     placeUI.addPlaceUI();
-    HumanPlayer.addPlaceGrid();
+    grid().createGrid("place");
+    AIPlayer.AIPlace();
+    console.log(AIPlayer.board.shipArray);
   };
 
   const attackPhase = function () {
     placeUI.removePlaceUI();
     addAttackUI();
-    HumanPlayer.addDisplayGrid();
+    grid().createGrid("display");
+    grid().createGrid("attack");
   };
 
   function placePhaseProgress() {
     timesPlaced++;
     if (timesPlaced === 5) {
-      gameFlow().attackPhase();
+      attackPhase();
     }
   }
 
